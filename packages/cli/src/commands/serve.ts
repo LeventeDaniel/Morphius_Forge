@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve, join, dirname } from "node:path";
 import * as http from "node:http";
-import { validateModuleFolder } from "../../validator/src/validateModuleFolder.js";
+import { validateModuleFolder } from "@morphius-forge/validator";
 
 const DEFAULT_PORT = 7901;
 const CONFIG_FILE = "forge.config.json";
