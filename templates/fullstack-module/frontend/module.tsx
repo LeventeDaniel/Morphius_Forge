@@ -1,59 +1,90 @@
-// {{MODULE_TITLE}} — Morphius Fullstack Module — Frontend
-// Calls backend actions via Morphius runtime bridge (never directly to external APIs).
+// {{MODULE_TITLE}} — Morphius Fullstack Module — Main Interface
+// This surface is mounted by Morphius. This module owns what the user sees.
+// Morphius does not build dashboards or controls for this module.
+// Calls backend via Morphius runtime bridge — never directly to external APIs.
 // No secrets here. See docs/SECURITY_RULES.md.
 
-import React, { useState } from "react";
+import { useState } from "react";
 import "./styles.css";
+
+interface ActionResult {
+  ok: boolean;
+  result?: unknown;
+  error?: string;
+}
 
 export default function {{MODULE_TITLE}}Module() {
   const [input, setInput] = useState("");
-  const [output, setOutput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [actionResult, setActionResult] = useState<ActionResult | null>(null);
+  const [running, setRunning] = useState(false);
 
   async function handleRun() {
-    setLoading(true);
-    setError(null);
-    setOutput("");
+    if (!input.trim()) return;
+    setRunning(true);
+    setActionResult(null);
 
     try {
       // In production, call via Morphius runtime bridge:
       // const result = await morphius.callAction("exampleAction", { text: input });
-      // For now, mock locally:
+      // For local dev, mock:
       await new Promise((r) => setTimeout(r, 400));
-      setOutput(`[MOCK] Processed: ${input}`);
-    } catch (e) {
-      setError((e as Error).message);
+      setActionResult({ ok: true, result: `[MOCK] Processed: ${input}` });
+    } catch (err) {
+      setActionResult({ ok: false, error: (err as Error).message });
     } finally {
-      setLoading(false);
+      setRunning(false);
     }
   }
 
   return (
     <div className="mf-module">
       <div className="mf-module__header">
-        <span className="mf-module__title">{{MODULE_TITLE}}</span>
+        <div className="mf-header-left">
+          <span
+            className="mf-status-dot"
+            style={{
+              background: actionResult
+                ? actionResult.ok ? "var(--color-accent)" : "#ff4444"
+                : "#333",
+            }}
+          />
+          <span className="mf-label">{{MODULE_TITLE}}</span>
+        </div>
       </div>
+
       <div className="mf-module__body">
-        <label className="mf-label">Input</label>
+
+        <label className="mf-label">INPUT</label>
         <textarea
           className="mf-textarea"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Enter input..."
+          placeholder="Enter input…"
           rows={4}
-          disabled={loading}
+          disabled={running}
         />
-        <button className="mf-button" onClick={handleRun} disabled={loading}>
-          {loading ? "Running..." : "Run"}
+
+        <button
+          className="mf-button mf-button--primary"
+          onClick={handleRun}
+          disabled={running || !input.trim()}
+        >
+          {running ? "…" : "▶ RUN"}
         </button>
-        {error && <div className="mf-error">{error}</div>}
-        {output && (
+
+        {actionResult && (
           <div className="mf-output">
-            <label className="mf-label">Output</label>
-            <pre className="mf-pre">{output}</pre>
+            <label className="mf-label">{actionResult.ok ? "RESULT" : "ERROR"}</label>
+            <pre className="mf-pre">
+              {actionResult.ok
+                ? typeof actionResult.result === "string"
+                  ? actionResult.result
+                  : JSON.stringify(actionResult.result, null, 2)
+                : actionResult.error}
+            </pre>
           </div>
         )}
+
       </div>
     </div>
   );

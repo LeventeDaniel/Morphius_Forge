@@ -138,7 +138,7 @@ export default function ForgeStatusModule() {
             })}>
               {val}
             </span>
-            <span style={mono({ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em' })}>{label}</span>
+            <span style={mono({ fontSize: 11, color: 'var(--text-muted)', letterSpacing: '0.1em' })}>{label}</span>
           </div>
         ))}
       </div>

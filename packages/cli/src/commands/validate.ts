@@ -3,7 +3,7 @@ import { validateModuleFolder } from "@morphius-forge/validator";
 const LEVEL_LABEL: Record<string, string> = {
   loadable:   "LEVEL 1 — LOADABLE",
   usable:     "LEVEL 2 — USABLE",
-  integrated: "LEVEL 3 — INTEGRATED",
+  actionable: "LEVEL 3 — ACTIONABLE",
   advanced:   "LEVEL 4 — ADVANCED",
 };
 
@@ -60,7 +60,29 @@ export function runValidate(args: string[]): void {
     console.log(`    permissions:      ${m.permissions.length > 0 ? m.permissions.join(", ") : "none"}`);
     console.log(`    connectors:       ${m.connectors.length > 0 ? m.connectors.map((c) => c.name).join(", ") : "none"}`);
     console.log(`    secretRefs:       ${m.secretRefs.length > 0 ? m.secretRefs.map((s) => s.name).join(", ") : "none"}`);
-    console.log(`    actions:          ${m.actions.length > 0 ? m.actions.map((a) => a.id).join(", ") : "none"}`);
+    if (m.actions.length > 0) {
+      const actionSummary = m.actions.map((a) => {
+        const parts = [a.id];
+        if (a.kind) parts.push(`[${a.kind}]`);
+        return parts.join(" ");
+      });
+      console.log(`    actions:          ${actionSummary.join(", ")}`);
+    } else {
+      console.log(`    actions:          none`);
+    }
+    if (m.ui) {
+      const surfaces = m.ui.surfaces.map((s) => {
+        const parts = [s.id];
+        if (s.purpose) parts.push(`(${s.purpose})`);
+        return parts.join(" ");
+      });
+      console.log(`    ui.surfaces:      ${surfaces.join(", ")}`);
+      if (m.ui.primarySurface) {
+        console.log(`    ui.primary:       ${m.ui.primarySurface}`);
+      }
+    } else {
+      console.log(`    ui.surfaces:      none declared`);
+    }
     if (m.provider) {
       console.log(`    provider.kind:    ${m.provider.kind}`);
     }

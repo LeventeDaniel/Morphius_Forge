@@ -1,11 +1,27 @@
 {
   "id": "morphius-forge-status",
   "name": "Forge Status",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "frontend",
   "entry": "./src/module.tsx",
-  "description": "Shows Morphius Forge detection status, external module scan results, and validator output.",
-  "tags": ["forge", "status", "modules", "validator"],
+  "description": "Shows Morphius Forge scan status, module validity, per-module errors/warnings, and reload controls.",
+  "ui": {
+    "surfaces": [
+      {
+        "id": "main",
+        "name": "Forge Status",
+        "entry": "./src/module.tsx",
+        "kind": "window",
+        "purpose": "primary-control",
+        "reflects": ["status", "results", "diagnostics"],
+        "defaultSize": {
+          "width": 460,
+          "height": 460
+        }
+      }
+    ],
+    "primarySurface": "main"
+  },
   "window": {
     "defaultWidth": 460,
     "defaultHeight": 460,
@@ -15,5 +31,6 @@
   },
   "connectors": [],
   "secretRefs": [],
-  "permissions": []
+  "permissions": [],
+  "tags": ["forge", "status", "modules", "validator"]
 }

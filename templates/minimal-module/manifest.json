@@ -3,12 +3,5 @@
   "name": "My Module",
   "version": "1.0.0",
   "type": "frontend",
-  "entry": "./src/module.tsx",
-  "window": {
-    "defaultWidth": 480,
-    "defaultHeight": 380,
-    "resizable": true,
-    "minimizable": true,
-    "initialPosition": "center"
-  }
+  "entry": "./src/module.tsx"
 }

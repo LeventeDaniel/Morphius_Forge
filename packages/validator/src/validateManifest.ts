@@ -2,12 +2,12 @@ import { ManifestSchema, type Manifest } from "@morphius-forge/module-types";
 import { ZodError } from "zod";
 
 // ─── Compatibility levels ─────────────────────────────────────────────────────
-// loadable   — minimum fields only (id, name, version, type, entry)
-// usable     — adds description, window, permissions
-// integrated — adds actions, Connect references, workflow compat
-// advanced   — adds provider metadata, sandbox hints
+// loadable   — minimum 5 fields only (id, name, version, type, entry)
+// usable     — adds description + at least one UI surface
+// actionable — adds declared actions with action UI metadata
+// advanced   — adds provider metadata, sandbox hints, diagnostics/log surfaces
 
-export type CompatibilityLevel = "loadable" | "usable" | "integrated" | "advanced";
+export type CompatibilityLevel = "loadable" | "usable" | "actionable" | "advanced";
 
 export type ValidationResult = {
   valid: boolean;
@@ -29,6 +29,11 @@ const KNOWN_TYPES = new Set([
   "frontend", "backend", "fullstack", "workflow", "provider",
 ]);
 
+const KNOWN_SURFACE_PURPOSES = new Set([
+  "primary-control", "status", "settings", "task-runner",
+  "results", "logs", "review", "diagnostics",
+]);
+
 // ─── Patterns that strongly suggest a real secret value is present ────────────
 
 const SECRET_PATTERNS: Array<{ pattern: RegExp; label: string }> = [
@@ -48,53 +53,139 @@ const SECRET_PATTERNS: Array<{ pattern: RegExp; label: string }> = [
 
 // ─── Compute compatibility level ─────────────────────────────────────────────
 
-function computeLevel(manifest: Manifest, warnings: string[], recommendations: string[]): CompatibilityLevel {
-  // Level 2 — Usable: has description + permissions declared
-  const hasDescription = typeof manifest.description === "string" && manifest.description.trim().length > 0;
-  const hasWindow = manifest.window !== undefined;
+function computeLevel(
+  manifest: Manifest,
+  warnings: string[],
+  recommendations: string[]
+): CompatibilityLevel {
+  const hasDescription =
+    typeof manifest.description === "string" && manifest.description.trim().length > 0;
+  const hasSurfaces = manifest.ui !== undefined && manifest.ui.surfaces.length > 0;
+  const hasPrimarySurface =
+    hasSurfaces &&
+    manifest.ui!.surfaces.some(
+      (s) =>
+        s.purpose === "primary-control" ||
+        s.id === "main" ||
+        manifest.ui!.primarySurface === s.id
+    );
 
+  // ── Level 1 → Level 2 gate ──────────────────────────────────────────────────
   if (!hasDescription) {
-    recommendations.push("description: add a description for better display in Morphius (Level 2 — Usable)");
-  }
-  if (!hasWindow) {
-    recommendations.push("window: add window preferences for better UX (Level 2 — Usable)");
+    recommendations.push(
+      "description: add a description for better display in Morphius (Level 2 — Usable)"
+    );
   }
 
-  if (!hasDescription) return "loadable";
+  if (!hasSurfaces) {
+    recommendations.push(
+      "ui.surfaces: modules should own their UI — declare at least one surface so Morphius can mount it (Level 2 — Usable). " +
+        "See docs/MODULE_UI_GUIDE.md"
+    );
+  } else if (!hasPrimarySurface) {
+    recommendations.push(
+      "ui.primarySurface: mark one surface as primary-control or set ui.primarySurface so Morphius knows the main interface"
+    );
+  }
 
-  // Level 3 — Integrated: has actions
+  if (!manifest.window) {
+    recommendations.push(
+      "window: add window size preferences for better initial layout (Level 2 — Usable)"
+    );
+  }
+
+  if (!hasDescription || !hasSurfaces) return "loadable";
+
+  // ── Level 2 → Level 3 gate ──────────────────────────────────────────────────
   const hasActions = manifest.actions.length > 0;
+  const actionsWithUi = manifest.actions.filter((a) => a.ui !== undefined);
 
   if (!hasActions) {
-    recommendations.push("actions: declare module actions for richer Morphius integration (Level 3 — Integrated)");
+    recommendations.push(
+      "actions: declare module actions so they appear as controls in the module UI (Level 3 — Actionable)"
+    );
+  } else if (actionsWithUi.length === 0) {
+    recommendations.push(
+      "actions[*].ui: add ui.buttonLabel/placement to actions so they render as controls in the module interface (Level 3 — Actionable)"
+    );
   }
+
+  const destructiveWithoutConfirm = manifest.actions.filter(
+    (a) => a.kind === "destructive" && !a.ui?.confirmMessage
+  );
+  for (const a of destructiveWithoutConfirm) {
+    warnings.push(
+      `actions["${a.id}"]: kind is "destructive" but ui.confirmMessage is not set — add a confirmation prompt`
+    );
+  }
+
+  const approvalWithoutUi = manifest.actions.filter(
+    (a) => a.kind === "approval-required" && !a.ui
+  );
+  for (const a of approvalWithoutUi) {
+    recommendations.push(
+      `actions["${a.id}"]: kind is "approval-required" — add ui metadata so the approval flow is clear in the module interface`
+    );
+  }
+
   if (typeof manifest.workflowCompatible !== "boolean") {
-    recommendations.push("workflowCompatible: set to true if this module works in workflows (Level 3 — Integrated)");
+    recommendations.push(
+      "workflowCompatible: set to true if this module works in workflows (Level 3 — Actionable)"
+    );
+  }
+
+  // Warn on unknown surface purposes
+  if (hasSurfaces) {
+    for (const s of manifest.ui!.surfaces) {
+      if (s.purpose && !KNOWN_SURFACE_PURPOSES.has(s.purpose)) {
+        warnings.push(
+          `ui.surfaces["${s.id}"].purpose: "${s.purpose}" is not a recognized purpose — will be treated as custom`
+        );
+      }
+    }
   }
 
   if (!hasActions) return "usable";
 
-  // Level 4 — Advanced: has provider or sandbox metadata
+  // ── Level 3 → Level 4 gate ──────────────────────────────────────────────────
   const hasProvider = manifest.provider !== undefined;
   const hasSandbox = manifest.sandbox !== undefined;
+  const hasDiagnosticSurface =
+    hasSurfaces &&
+    manifest.ui!.surfaces.some(
+      (s) => s.purpose === "diagnostics" || s.purpose === "logs"
+    );
 
   if (!hasProvider) {
-    recommendations.push("provider: add provider metadata if this module fills a system role (Level 4 — Advanced)");
+    recommendations.push(
+      "provider: add provider metadata if this module fills a system role (Level 4 — Advanced)"
+    );
+  }
+  if (!hasDiagnosticSurface) {
+    recommendations.push(
+      "ui.surfaces: consider adding a diagnostics or logs surface for advanced modules (Level 4 — Advanced)"
+    );
   }
 
-  if (!(hasProvider || hasSandbox)) return "integrated";
+  if (!(hasProvider || hasSandbox)) return "actionable";
 
-  // Validate provider metadata (warnings, not errors)
+  // Validate provider metadata (warnings only)
   if (hasProvider) {
     const prov = manifest.provider!;
     if (!KNOWN_PROVIDER_KINDS.has(prov.kind)) {
-      warnings.push(`provider.kind: "${prov.kind}" is not a recognized kind — will display as experimental in Morphius`);
+      warnings.push(
+        `provider.kind: "${prov.kind}" is not a recognized kind — will display as experimental in Morphius`
+      );
     }
     if (!prov.handles || prov.handles.length === 0) {
-      recommendations.push("provider.handles: list the request types this provider handles");
+      recommendations.push(
+        "provider.handles: list the request types this provider handles"
+      );
     }
     if (!prov.decisions || prov.decisions.length === 0) {
-      recommendations.push("provider.decisions: list possible decisions (e.g. [\"allow\", \"block\"])");
+      recommendations.push(
+        'provider.decisions: list possible decisions (e.g. ["accepted", "rejected"])'
+      );
     }
   }
 
@@ -122,22 +213,44 @@ export function validateManifest(raw: unknown): ValidationResult {
 
   // Warn on unknown type (not an error — experimental types are allowed)
   if (!KNOWN_TYPES.has(manifest.type)) {
-    warnings.push(`type: "${manifest.type}" is not a standard type — will display as experimental in Morphius`);
+    warnings.push(
+      `type: "${manifest.type}" is not a standard type — will display as experimental in Morphius`
+    );
   }
 
   // fullstack: backendEntry recommended
   if (manifest.type === "fullstack" && !manifest.backendEntry) {
-    warnings.push("fullstack modules should declare backendEntry — Morphius cannot route backend calls without it");
+    warnings.push(
+      "fullstack modules should declare backendEntry — Morphius cannot route backend calls without it"
+    );
   }
 
   // backend: backendEntry recommended
   if (manifest.type === "backend" && !manifest.backendEntry) {
-    recommendations.push("backend module has no backendEntry — consider declaring backendEntry");
+    recommendations.push(
+      "backend module has no backendEntry — consider declaring backendEntry"
+    );
   }
 
   // workflow: actions recommended
   if (manifest.type === "workflow" && manifest.actions.length === 0) {
-    recommendations.push("workflow module has no actions declared — consider declaring the workflows it exposes");
+    recommendations.push(
+      "workflow module has no actions declared — consider declaring the workflows it exposes"
+    );
+  }
+
+  // UI surface entry files consistency check: surfaces override the top-level entry
+  // for display purposes; warn if a surface entry equals the top-level entry on a
+  // multi-surface module (likely a copy-paste oversight).
+  if (manifest.ui && manifest.ui.surfaces.length > 1) {
+    const duplicateEntries = manifest.ui.surfaces.filter(
+      (s) => s.entry === manifest.entry
+    );
+    for (const s of duplicateEntries) {
+      recommendations.push(
+        `ui.surfaces["${s.id}"].entry is the same as the top-level entry — each surface should point to its own component file`
+      );
+    }
   }
 
   // Secret scan on raw JSON string — always an error

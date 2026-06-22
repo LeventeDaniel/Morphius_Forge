@@ -1,5 +1,12 @@
 import { validateModuleFolder } from "@morphius-forge/validator";
 
+const LEVEL_LABEL: Record<string, string> = {
+  loadable:   "LEVEL 1 — LOADABLE",
+  usable:     "LEVEL 2 — USABLE",
+  actionable: "LEVEL 3 — ACTIONABLE",
+  advanced:   "LEVEL 4 — ADVANCED",
+};
+
 export function runInspect(args: string[]): void {
   const modulePath = args[0];
   if (!modulePath) {
@@ -19,13 +26,14 @@ export function runInspect(args: string[]): void {
   }
 
   const m = result.manifest;
+  const levelLabel = LEVEL_LABEL[result.compatibilityLevel] ?? result.compatibilityLevel.toUpperCase();
 
   console.log("");
   console.log(`  ┌─ ${m.name}`);
   console.log(`  │  id:           ${m.id}`);
   console.log(`  │  version:      ${m.version}`);
   console.log(`  │  type:         ${m.type}`);
-  console.log(`  │  description:  ${m.description}`);
+  console.log(`  │  description:  ${m.description ?? "(none)"}`);
   if (m.author) console.log(`  │  author:       ${m.author}`);
   console.log(`  │  license:      ${m.license}`);
   if (m.morphiusVersion) console.log(`  │  morphius:     ${m.morphiusVersion}+`);
@@ -33,6 +41,37 @@ export function runInspect(args: string[]): void {
   console.log(`  │`);
   console.log(`  │  entry:        ${m.entry}`);
   if (m.backendEntry) console.log(`  │  backendEntry: ${m.backendEntry}`);
+
+  // ── UI surfaces ──────────────────────────────────────────────────────────────
+  if (m.ui && m.ui.surfaces.length > 0) {
+    console.log(`  │`);
+    console.log(`  │  ui.surfaces:  (module owns its interface — Morphius mounts these)`);
+    for (const s of m.ui.surfaces) {
+      const isPrimary =
+        m.ui.primarySurface === s.id || (!m.ui.primarySurface && s.id === "main");
+      const primary = isPrimary ? " ★" : "";
+      const kind = s.kind ? ` [${s.kind}]` : "";
+      const purpose = s.purpose ? ` (${s.purpose})` : "";
+      console.log(`  │    · ${s.id}${primary}${kind}${purpose}`);
+      console.log(`  │        entry:  ${s.entry}`);
+      if (s.defaultSize) {
+        console.log(`  │        size:   ${s.defaultSize.width}×${s.defaultSize.height}`);
+      }
+      if (s.reflects && s.reflects.length > 0) {
+        console.log(`  │        reflects: ${s.reflects.join(", ")}`);
+      }
+      if (s.actions && s.actions.length > 0) {
+        console.log(`  │        actions: ${s.actions.join(", ")}`);
+      }
+    }
+    if (m.ui.statusSurface) {
+      console.log(`  │    status surface: ${m.ui.statusSurface}`);
+    }
+  } else {
+    console.log(`  │`);
+    console.log(`  │  ui.surfaces:  none declared`);
+    console.log(`  │    → modules should own their UI — see docs/MODULE_UI_GUIDE.md`);
+  }
 
   if (m.permissions.length > 0) {
     console.log(`  │`);
@@ -61,7 +100,7 @@ export function runInspect(args: string[]): void {
   if (m.window) {
     const w = m.window;
     console.log(`  │`);
-    console.log(`  │  window:`);
+    console.log(`  │  window (legacy / fallback):`);
     if (w.defaultWidth) console.log(`  │    defaultWidth:  ${w.defaultWidth}`);
     if (w.defaultHeight) console.log(`  │    defaultHeight: ${w.defaultHeight}`);
     if (w.resizable !== undefined) console.log(`  │    resizable:     ${w.resizable}`);
@@ -73,10 +112,24 @@ export function runInspect(args: string[]): void {
     console.log(`  │`);
     console.log(`  │  actions:`);
     for (const a of m.actions) {
+      const kind = a.kind ? ` [${a.kind}]` : "";
       const desc = a.description ? `  — ${a.description}` : "";
-      console.log(`  │    · ${a.id} (${a.name})${desc}`);
-      if (a.inputSchema) console.log(`  │        input:  ${a.inputSchema}`);
-      if (a.outputSchema) console.log(`  │        output: ${a.outputSchema}`);
+      console.log(`  │    · ${a.id} (${a.name})${kind}${desc}`);
+      if (a.ui) {
+        const label = a.ui.buttonLabel ? `label: "${a.ui.buttonLabel}"` : "";
+        const placement = a.ui.placement ? `placement: ${a.ui.placement}` : "";
+        const uiParts = [label, placement].filter(Boolean).join(", ");
+        if (uiParts) console.log(`  │        ui: ${uiParts}`);
+        if (a.ui.confirmMessage) {
+          console.log(`  │        confirm: "${a.ui.confirmMessage}"`);
+        }
+      }
+      if (a.inputSchema) {
+        console.log(`  │        input:  ${JSON.stringify(a.inputSchema)}`);
+      }
+      if (a.outputSchema) {
+        console.log(`  │        output: ${JSON.stringify(a.outputSchema)}`);
+      }
     }
   }
 
@@ -92,12 +145,40 @@ export function runInspect(args: string[]): void {
     for (const e of m.eventsListened) console.log(`  │    · ${e.name}`);
   }
 
+  if (m.provider) {
+    console.log(`  │`);
+    console.log(`  │  provider:`);
+    console.log(`  │    kind:      ${m.provider.kind}`);
+    if (m.provider.handles?.length) {
+      console.log(`  │    handles:   ${m.provider.handles.join(", ")}`);
+    }
+    if (m.provider.decisions?.length) {
+      console.log(`  │    decisions: ${m.provider.decisions.join(", ")}`);
+    }
+  }
+
+  if (m.workflowCompatible !== undefined) {
+    console.log(`  │`);
+    console.log(`  │  workflowCompatible: ${m.workflowCompatible}`);
+  }
+
+  if (m.mockMode !== undefined) {
+    console.log(`  │  mockMode:           ${m.mockMode}`);
+  }
+
   if (result.warnings.length > 0) {
     console.log(`  │`);
     console.log(`  │  warnings:`);
     for (const w of result.warnings) console.log(`  │    ⚠  ${w}`);
   }
 
-  console.log(`  └─`);
+  if (result.recommendations.length > 0) {
+    console.log(`  │`);
+    console.log(`  │  recommendations:`);
+    for (const r of result.recommendations) console.log(`  │    ·  ${r}`);
+  }
+
+  console.log(`  │`);
+  console.log(`  └─ ${levelLabel}`);
   console.log("");
 }

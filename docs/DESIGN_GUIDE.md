@@ -1,12 +1,16 @@
 # Morphius Design Guide
 
-Version: 0.4.0
+Version: 0.5.0
 
 ---
 
 ## Philosophy
 
 Morphius is a desktop-like webtop: floating windows on a canvas, not a page. Modules should feel like tools in a professional workspace — focused, minimal, and fast.
+
+**Morphius is a blank canvas. Every interface the user sees comes from a module.**
+
+Morphius mounts what modules declare. It does not generate status cards from manifest fields, does not create buttons from action arrays, does not build dashboards. If a module has a real capability, its UI surface must show it.
 
 **Following this guide is required for Forge validation.** Modules that use off-palette colors or font sizes below 11px will generate warnings during `morphius-forge validate`.
 
@@ -38,8 +42,8 @@ Use CSS variables where possible. Raw hex is accepted only from the allowed spec
 | `--status-error` | `#f87171` | Errors only |
 
 **Rules:**
-- `#4ade80` is the **only** accent color. Use it sparingly — status dots, active indicators, caret color.
-- No yellows, blues, purples, or other accent colors. Forge validator will warn on these.
+- `#4ade80` is the **only** accent color. Use it sparingly — status dots, active indicators, button hover borders.
+- **No** yellows, blues, purples, or other accent colors. Forge validator will warn on these.
 - Warnings use `var(--status-warn)` (`#555`/`#666`) not yellow.
 - Errors use `var(--status-error)` only when something has actually failed.
 - All other UI: use CSS variables or the grey shades `#111`–`#e8e8e8`.
@@ -48,18 +52,16 @@ Use CSS variables where possible. Raw hex is accepted only from the allowed spec
 
 ## Typography
 
-- Monospace font: use `var(--font-mono)` or `'JetBrains Mono', 'Fira Code', 'Courier New', monospace`
+- Monospace font only: `'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace`
 - Minimum font size is **11px** — Forge validator warns on anything smaller.
 
 | Role | Size |
 |---|---|
 | Tiny labels / badges | 11px |
-| Section labels / chips | 13px |
-| Body data / descriptions | 14px |
-| Standard UI text | 15px |
-| Primary readable text | 17–18px |
-| Module base font-size | 18px |
-| Headings / names | 17–18px |
+| Section labels / chips | 12–13px |
+| Body data / descriptions | 13px |
+| Standard UI text | 13px |
+| Primary readable text | 14px |
 
 - Uppercase labels with `letter-spacing: 0.08–0.12em`
 - No drop shadows, no text shadows
@@ -70,35 +72,45 @@ Use CSS variables where possible. Raw hex is accepted only from the allowed spec
 
 - Dark background — no white or near-white surfaces
 - 1px borders with `var(--border)`
-- No rounded corners (sharp edges)
-- No gradients
-- No drop shadows
+- **No rounded corners** — `border-radius: 0` everywhere
+- **No gradients**
+- **No drop shadows**
 - Compact padding: 8–12px
 - Section dividers with `border-top: 1px solid var(--border-subtle)`
 
 ---
 
-## Window sizing and positioning
+## Window sizing and surfaces
 
-Declare a `window` block in your manifest. `initialPosition: "center"` is recommended — it places the window in the center of the canvas when first opened, which works for any screen size.
+Declare `ui.surfaces` with `defaultSize` for each surface. Also declare a `window` block as a sizing fallback.
 
 ```json
+"ui": {
+  "surfaces": [
+    {
+      "id": "main",
+      "entry": "./src/module.tsx",
+      "kind": "window",
+      "purpose": "primary-control",
+      "defaultSize": { "width": 620, "height": 460 }
+    }
+  ],
+  "primarySurface": "main"
+},
 "window": {
-  "defaultWidth": 480,
-  "defaultHeight": 380,
+  "defaultWidth": 620,
+  "defaultHeight": 460,
   "resizable": true,
   "minimizable": true,
   "initialPosition": "center"
 }
 ```
 
-`initialPosition` options: `"center"`, `"top-left"`, `"top-right"`, `"bottom-left"`, `"bottom-right"`
-
 Recommended sizes:
 - Narrow information panels: 360–420px wide
-- Action-heavy modules: 420–520px wide
-- Data-heavy modules: 520–640px wide
-- Height: 300–520px for most use cases
+- Action-heavy modules: 480–640px wide
+- Data-heavy modules: 640–760px wide
+- Height: 360–560px for most use cases
 
 ---
 
@@ -107,7 +119,7 @@ Recommended sizes:
 Use all-caps short labels above data blocks:
 
 ```jsx
-<div style={{ fontSize: 13, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', letterSpacing: '0.1em' }}>
+<div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', letterSpacing: '0.1em' }}>
   PERMISSIONS
 </div>
 ```
@@ -116,13 +128,17 @@ Use all-caps short labels above data blocks:
 
 ## Status indicators
 
-Small colored dots for status. Green only for active/ok:
+Small colored dots for status. Green for ok. Red for error. Dark (`#2a2a2a`–`#333`) for idle.
 
 ```jsx
 <span style={{
-  width: 6, height: 6, borderRadius: '50%',
-  background: isOnline ? 'var(--status-ok)' : 'var(--status-warn)',
+  width: 6,
+  height: 6,
+  borderRadius: '50%',
+  background: isOnline ? '#4ade80' : '#ff4444',
+  boxShadow: isOnline ? '0 0 4px #4ade80' : 'none',
   flexShrink: 0,
+  display: 'inline-block',
 }} />
 ```
 
@@ -132,11 +148,11 @@ Small colored dots for status. Green only for active/ok:
 
 ```jsx
 <span style={{
-  fontSize: 13,
-  color: 'var(--text-secondary)',
+  fontSize: 11,
+  color: '#666',
   fontFamily: 'var(--font-mono)',
   border: '1px solid var(--border)',
-  padding: '2px 6px',
+  padding: '1px 5px',
   letterSpacing: '0.05em',
 }}>
   CHIP LABEL
@@ -149,25 +165,78 @@ Small colored dots for status. Green only for active/ok:
 
 ```jsx
 <button style={{
-  background: 'var(--bg-secondary)',
+  background: 'transparent',
   border: '1px solid var(--border)',
-  color: 'var(--text-primary)',
+  color: '#ccc',
   fontFamily: 'var(--font-mono)',
-  fontSize: 14,
-  letterSpacing: '0.08em',
-  padding: '4px 10px',
+  fontSize: 12,
+  letterSpacing: '0.1em',
+  padding: '5px 14px',
   cursor: 'pointer',
-  textAlign: 'left',
+  textTransform: 'uppercase',
 }}>
-  ▶ ACTION NAME
+  ▶ RUN
 </button>
+```
+
+On hover (primary action):
+```css
+border-color: #4ade80;
+color: #4ade80;
+```
+
+On disabled:
+```css
+opacity: 0.4;
+cursor: default;
 ```
 
 ---
 
 ## Scrollable areas
 
-Use `overflowY: 'auto'` with a max height. Do not show scroll bars unless content exceeds available space.
+Use `overflow-y: auto` with `flex: 1` on the body area. Do not show scrollbars unless content exceeds available space.
+
+---
+
+## Module UI: what to show
+
+**Morphius mounts your surface and stops there. The rest is yours.**
+
+A capable module's main surface should show:
+
+| Category | What to include |
+|---|---|
+| Status | Online / offline / degraded — status dot + label |
+| Capabilities | What the module can actually do — list or summary |
+| Config needs | Whether required config/connections are present (not the values) |
+| Action controls | A button or control for each action the module exposes |
+| Results / output | Inline output block after action runs |
+| Logs / diagnostics | In a separate logs or diagnostics surface |
+
+---
+
+## What to avoid
+
+**Avoid generic status cards.** "Module: Active" tells the user nothing. Show the actual state, data, and controls.
+
+**Avoid SaaS dashboard patterns:**
+- No hero metric tiles
+- No donut charts for things that don't need them
+- No empty state illustrations
+- No friendly onboarding copy
+
+**Avoid copying Morphius chrome.** The module surface is inside a Morphius window. Don't recreate a window titlebar, app sidebar, or navigation drawer inside the surface.
+
+**Avoid hiding real capability.** If the module has 5 actions, show 5 controls.
+
+---
+
+## Security
+
+- **Never expose** secrets, tokens, API keys, raw env values
+- **Never auto-execute** risky actions on load
+- **Never import** server-only code or credential files into surface components
 
 ---
 
@@ -175,17 +244,20 @@ Use `overflowY: 'auto'` with a max height. Do not show scroll bars unless conten
 
 Running `morphius-forge validate <path>` checks:
 - Manifest structure and required fields
-- Entry files exist
+- Entry and surface files exist
 - No hardcoded secrets in source files
 - No off-palette accent colors (blues, purples, yellows, oranges) — **warning**
 - No font sizes below 11px — **warning**
 
-Validation warnings do not block loading but are shown in the Forge status window inside Morphius.
+Validation warnings do not block loading.
 
 ---
 
-## Progressive design
+## Size guidance
 
-If your module is Level 1 (loadable) only, Morphius will show its name, version, type, and source. You don't need to implement any UI for the module to appear — the generic module window handles the basics.
-
-Add UI progressively as you add more manifest metadata.
+| Module complexity | Expected surface |
+|---|---|
+| Single read-only capability | Status row + one data section |
+| Multiple capabilities | Status header + section per capability |
+| Action-heavy | Status + capability list + per-action controls |
+| Provider / host | Status + registered items + health per item + diagnostic surface |

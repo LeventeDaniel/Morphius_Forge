@@ -4,22 +4,57 @@
   "version": "0.1.0",
   "type": "backend",
   "description": "TODO: describe what this module does",
-  "entry": "./src/actions.ts",
+  "entry": "./src/module.tsx",
   "backendEntry": "./src/server.ts",
   "permissions": [],
   "connectors": [],
   "secretRefs": [],
+  "ui": {
+    "surfaces": [
+      {
+        "id": "main",
+        "name": "Main Interface",
+        "entry": "./src/module.tsx",
+        "kind": "window",
+        "purpose": "primary-control",
+        "reflects": ["status", "capabilities", "actions"],
+        "actions": ["exampleAction"],
+        "defaultSize": {
+          "width": 600,
+          "height": 460
+        }
+      }
+    ],
+    "primarySurface": "main"
+  },
+  "window": {
+    "defaultWidth": 600,
+    "defaultHeight": 460,
+    "resizable": true,
+    "minimizable": true,
+    "initialPosition": "center"
+  },
   "actions": [
     {
       "id": "exampleAction",
       "name": "Example Action",
       "description": "TODO: describe this action",
-      "inputSchema": "ExampleInput",
-      "outputSchema": "ExampleOutput"
+      "kind": "safe",
+      "inputSchema": {
+        "text": { "type": "string" }
+      },
+      "outputSchema": {
+        "result": { "type": "string" }
+      },
+      "ui": {
+        "buttonLabel": "▶ RUN",
+        "placement": "primary"
+      }
     }
   ],
   "eventsEmitted": [],
   "eventsListened": [],
+  "mockMode": true,
   "tags": [],
   "author": "TODO: your name or org",
   "license": "MIT"

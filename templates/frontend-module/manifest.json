@@ -3,22 +3,51 @@
   "name": "My Frontend Module",
   "version": "0.1.0",
   "type": "frontend",
-  "description": "TODO: describe what this module does",
+  "description": "TODO: describe what this module does in one sentence",
   "entry": "./src/module.tsx",
   "permissions": [],
   "connectors": [],
   "secretRefs": [],
+  "ui": {
+    "surfaces": [
+      {
+        "id": "main",
+        "name": "Main Interface",
+        "entry": "./src/module.tsx",
+        "kind": "window",
+        "purpose": "primary-control",
+        "reflects": ["status", "actions", "results"],
+        "defaultSize": {
+          "width": 620,
+          "height": 460
+        }
+      }
+    ],
+    "primarySurface": "main"
+  },
   "window": {
-    "defaultWidth": 560,
-    "defaultHeight": 420,
+    "defaultWidth": 620,
+    "defaultHeight": 460,
     "resizable": true,
     "collapsible": true,
     "minimizable": true,
     "initialPosition": "center"
   },
-  "actions": [],
+  "actions": [
+    {
+      "id": "run",
+      "name": "Run",
+      "description": "TODO: describe what this action does",
+      "kind": "safe",
+      "ui": {
+        "buttonLabel": "▶ RUN",
+        "placement": "primary"
+      }
+    }
+  ],
   "eventsEmitted": [],
   "eventsListened": [],
+  "mockMode": true,
   "tags": [],
   "author": "TODO: your name or org",
   "license": "MIT"

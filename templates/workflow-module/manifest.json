@@ -8,9 +8,53 @@
   "permissions": [],
   "connectors": [],
   "secretRefs": [],
-  "actions": [],
+  "ui": {
+    "surfaces": [
+      {
+        "id": "runner",
+        "name": "Workflow Runner",
+        "entry": "./src/module.tsx",
+        "kind": "window",
+        "purpose": "task-runner",
+        "reflects": ["status", "actions", "results"],
+        "actions": ["run"],
+        "defaultSize": {
+          "width": 660,
+          "height": 500
+        }
+      }
+    ],
+    "primarySurface": "runner"
+  },
+  "window": {
+    "defaultWidth": 660,
+    "defaultHeight": 500,
+    "resizable": true,
+    "minimizable": true,
+    "initialPosition": "center"
+  },
+  "actions": [
+    {
+      "id": "run",
+      "name": "Run Workflow",
+      "description": "Runs the workflow with the provided inputs",
+      "kind": "safe",
+      "inputSchema": {
+        "userText": { "type": "string" }
+      },
+      "outputSchema": {
+        "finalResult": { "type": "string" }
+      },
+      "ui": {
+        "buttonLabel": "▶ RUN WORKFLOW",
+        "placement": "primary"
+      }
+    }
+  ],
   "eventsEmitted": [],
   "eventsListened": [],
+  "workflowCompatible": true,
+  "mockMode": true,
   "tags": ["workflow"],
   "author": "TODO: your name or org",
   "license": "MIT"

@@ -4,13 +4,59 @@
   "version": "1.0.0",
   "type": "provider",
   "entry": "./src/provider.ts",
-  "description": "An optional provider module that fills a system role in Morphius.",
+  "description": "A provider module that fills a system role in Morphius.",
   "permissions": [],
+  "ui": {
+    "surfaces": [
+      {
+        "id": "main",
+        "name": "Provider Dashboard",
+        "entry": "./src/module.tsx",
+        "kind": "window",
+        "purpose": "primary-control",
+        "reflects": ["status", "capabilities", "actions", "results"],
+        "actions": ["handleRequest"],
+        "defaultSize": {
+          "width": 640,
+          "height": 500
+        }
+      },
+      {
+        "id": "diagnostics",
+        "name": "Diagnostics",
+        "entry": "./src/diagnostics.tsx",
+        "kind": "panel",
+        "purpose": "diagnostics"
+      }
+    ],
+    "primarySurface": "main",
+    "statusSurface": "main"
+  },
+  "window": {
+    "defaultWidth": 640,
+    "defaultHeight": 500,
+    "resizable": true,
+    "minimizable": true,
+    "initialPosition": "center"
+  },
   "actions": [
     {
       "id": "handleRequest",
       "name": "Handle Request",
-      "description": "Handle an incoming provider request"
+      "description": "Process an incoming provider request",
+      "kind": "safe",
+      "inputSchema": {
+        "type": { "type": "string" },
+        "context": { "type": "object" }
+      },
+      "outputSchema": {
+        "decision": { "type": "string" },
+        "reason": { "type": "string" }
+      },
+      "ui": {
+        "buttonLabel": "▶ TEST REQUEST",
+        "placement": "primary"
+      }
     }
   ],
   "provider": {

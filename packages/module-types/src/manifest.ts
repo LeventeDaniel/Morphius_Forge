@@ -51,19 +51,37 @@ export const SecretRefSchema = z.object({
   description: z.string().optional(),
 });
 
+// ─── Action UI metadata ───────────────────────────────────────────────────────
+
+export const ActionUiSchema = z.object({
+  buttonLabel: z.string().optional(),
+  placement: z.enum(["primary", "secondary", "toolbar", "context"]).optional(),
+  icon: z.string().optional(),
+  confirmMessage: z.string().optional(),
+});
+
 // ─── Action ───────────────────────────────────────────────────────────────────
+
+export const ActionKindSchema = z.enum([
+  "safe",
+  "external",
+  "destructive",
+  "approval-required",
+]);
 
 export const ActionSchema = z.object({
   id: z
     .string()
     .regex(
-      /^[a-zA-Z][a-zA-Z0-9]*$/,
-      "action id must be camelCase alphanumeric (e.g. cleanPrompt)"
+      /^[a-zA-Z][a-zA-Z0-9-]*$/,
+      "action id must be camelCase or kebab-case alphanumeric (e.g. cleanPrompt or run-check)"
     ),
   name: z.string().min(1),
   description: z.string().optional(),
-  inputSchema: z.string().optional(),
-  outputSchema: z.string().optional(),
+  kind: ActionKindSchema.optional(),
+  inputSchema: z.record(z.unknown()).optional(),
+  outputSchema: z.record(z.unknown()).optional(),
+  ui: ActionUiSchema.optional(),
 });
 
 // ─── Event ────────────────────────────────────────────────────────────────────
@@ -87,6 +105,49 @@ export const WindowConfigSchema = z.object({
   initialPosition: z
     .enum(["center", "top-left", "top-right", "bottom-left", "bottom-right"])
     .optional(),
+});
+
+// ─── UI surface ───────────────────────────────────────────────────────────────
+// A surface is one mountable UI panel that a module exposes.
+// Morphius mounts surfaces — it does not build UI for modules.
+
+export const SurfaceKindSchema = z.enum(["window", "panel", "overlay", "embedded"]);
+
+export const SurfacePurposeSchema = z.enum([
+  "primary-control",
+  "status",
+  "settings",
+  "task-runner",
+  "results",
+  "logs",
+  "review",
+  "diagnostics",
+]);
+
+export const UiSurfaceSchema = z.object({
+  id: z
+    .string()
+    .regex(/^[a-z][a-z0-9-]*$/, "surface id must be kebab-case (e.g. main, task-runner)"),
+  name: z.string().min(1),
+  entry: z.string().min(1, "surface entry file is required"),
+  kind: SurfaceKindSchema.optional(),
+  purpose: SurfacePurposeSchema.optional(),
+  reflects: z.array(z.string()).optional(),
+  actions: z.array(z.string()).optional(),
+  defaultSize: z
+    .object({
+      width: z.number().int().min(200).max(3840),
+      height: z.number().int().min(100).max(2160),
+    })
+    .optional(),
+});
+
+// ─── Module UI block ──────────────────────────────────────────────────────────
+
+export const ModuleUiSchema = z.object({
+  surfaces: z.array(UiSurfaceSchema).min(1, "ui.surfaces must have at least one surface"),
+  statusSurface: z.string().optional(),
+  primarySurface: z.string().optional(),
 });
 
 // ─── Provider metadata (optional, flexible) ──────────────────────────────────
@@ -117,7 +178,12 @@ export const ManifestSchema = z.object({
   window: WindowConfigSchema.optional(),
   permissions: z.array(PermissionSchema).default([]),
 
-  // ── LEVEL 3 — INTEGRATED ────────────────────────────────────────────────────
+  // ── UI SURFACES — module owns its interface ──────────────────────────────────
+  // Declared at any level; expected from Level 2 onward.
+  // Morphius mounts these surfaces. Morphius does not build UI for modules.
+  ui: ModuleUiSchema.optional(),
+
+  // ── LEVEL 3 — ACTIONABLE ────────────────────────────────────────────────────
   connectors: z.array(ConnectorSchema).default([]),
   secretRefs: z.array(SecretRefSchema).default([]),
   actions: z.array(ActionSchema).default([]),
@@ -146,8 +212,14 @@ export type ModuleType = string;
 export type Permission = string;
 export type Connector = z.infer<typeof ConnectorSchema>;
 export type SecretRef = z.infer<typeof SecretRefSchema>;
+export type ActionKind = z.infer<typeof ActionKindSchema>;
+export type ActionUi = z.infer<typeof ActionUiSchema>;
 export type Action = z.infer<typeof ActionSchema>;
 export type Event = z.infer<typeof EventSchema>;
 export type WindowConfig = z.infer<typeof WindowConfigSchema>;
+export type SurfaceKind = z.infer<typeof SurfaceKindSchema>;
+export type SurfacePurpose = z.infer<typeof SurfacePurposeSchema>;
+export type UiSurface = z.infer<typeof UiSurfaceSchema>;
+export type ModuleUi = z.infer<typeof ModuleUiSchema>;
 export type ProviderMeta = z.infer<typeof ProviderMetaSchema>;
 export type Manifest = z.infer<typeof ManifestSchema>;

@@ -1,12 +1,14 @@
 # Morphius Module Specification
 
-Version: 0.2.0
+Version: 0.3.0
 
 ---
 
 ## Overview
 
-A Morphius module is a self-contained unit that plugs into the Morphius webtop host. Modules may provide UI panels, backend actions, composed workflows, or system-level provider roles. Morphius itself is a blank canvas — all real functionality comes from modules.
+A Morphius module is a self-contained unit that plugs into the Morphius webtop host. Modules provide UI surfaces, backend actions, composed workflows, or system-level provider roles. Morphius itself is a blank canvas — all real functionality and all visible interface come from modules.
+
+**Morphius does not build dashboards or controls for modules.** A module that wants the user to see something must ship that interface itself, in its own surface files.
 
 **Forge is the recommended way to build modules, but it is not required.** Any folder with a valid minimum manifest can be loaded by Morphius.
 
@@ -15,7 +17,7 @@ Recommended architectural rule:
 - Umbrella = recipe combining modules
 - Morphius = empty canvas that mounts them
 
-For recommended module boundaries, see `MODULE_CATALOG.md`. For multi-module workspace compositions, see `UMBRELLA_RECIPES.md`.
+For recommended module boundaries, see `MODULE_CATALOG.md`. For multi-module workspace compositions, see `UMBRELLA_RECIPES.md`. For UI surface design, see `MODULE_UI_GUIDE.md`.
 
 ---
 
@@ -31,7 +33,7 @@ For recommended module boundaries, see `MODULE_CATALOG.md`. For multi-module wor
 }
 ```
 
-This is a valid Level 1 (loadable) module. Morphius can discover it and open a generic window immediately.
+This is a valid Level 1 (loadable) module. Morphius mounts the entry file as a surface.
 
 See [COMPATIBILITY_LEVELS.md](COMPATIBILITY_LEVELS.md) for the full progressive compatibility system.
 
@@ -41,13 +43,13 @@ See [COMPATIBILITY_LEVELS.md](COMPATIBILITY_LEVELS.md) for the full progressive 
 
 Standard types (known to Morphius):
 
-| Type | Description | Requires UI | Requires Backend |
-|------|-------------|-------------|-----------------|
-| `frontend` | UI-only, runs in browser | Yes | No |
-| `backend` | Actions/API, little or no UI | No | Yes |
-| `fullstack` | UI + backend actions | Yes | Yes |
-| `workflow` | Orchestrates other modules | No | No |
-| `provider` | Fills a system role | No | Optional |
+| Type | Description |
+|------|-------------|
+| `frontend` | UI surface, runs in browser |
+| `backend` | Actions/API with backend server |
+| `fullstack` | UI surface + backend actions |
+| `workflow` | Orchestrates other modules |
+| `provider` | Fills a system role |
 
 **Unknown types are accepted.** They display as "experimental" in Morphius but load normally if minimum fields are present.
 
@@ -70,6 +72,34 @@ All fields beyond the minimum five are optional.
   "description": "What this module does.",
   "backendEntry": "./src/server.ts",
   "permissions": [],
+
+  // Module-owned UI surfaces — Morphius mounts these, builds nothing itself.
+  // See docs/MODULE_UI_GUIDE.md for the full surface design guide.
+  "ui": {
+    "surfaces": [
+      {
+        "id": "main",
+        "name": "Main Interface",
+        "entry": "./src/module.tsx",
+        "kind": "window",
+        "purpose": "primary-control",
+        "reflects": ["status", "capabilities", "actions", "results"],
+        "actions": ["myAction"],
+        "defaultSize": { "width": 720, "height": 520 }
+      },
+      {
+        "id": "diagnostics",
+        "name": "Diagnostics",
+        "entry": "./src/diagnostics.tsx",
+        "kind": "panel",
+        "purpose": "diagnostics"
+      }
+    ],
+    "primarySurface": "main",
+    "statusSurface": "main"
+  },
+
+  // window: fallback sizing hint when ui.surfaces is not declared
   "window": {
     "defaultWidth": 480,
     "defaultHeight": 400,
@@ -79,14 +109,29 @@ All fields beyond the minimum five are optional.
     "initialPosition": "center"
   },
 
-  // ── LEVEL 3 — INTEGRATED ────────────────────────────────────────────────
+  // ── LEVEL 3 — ACTIONABLE ────────────────────────────────────────────────
   "actions": [
     {
       "id": "myAction",
       "name": "My Action",
       "description": "What this action does",
-      "inputSchema": "{ ... }",
-      "outputSchema": "{ ... }"
+      "kind": "safe",
+      "inputSchema": { "text": { "type": "string" } },
+      "outputSchema": { "result": { "type": "string" } },
+      "ui": {
+        "buttonLabel": "▶ RUN",
+        "placement": "primary"
+      }
+    },
+    {
+      "id": "deleteRecord",
+      "name": "Delete Record",
+      "kind": "destructive",
+      "ui": {
+        "buttonLabel": "DELETE",
+        "placement": "context",
+        "confirmMessage": "This will permanently delete the record. Continue?"
+      }
     }
   ],
   "connectors": [
@@ -123,6 +168,47 @@ All fields beyond the minimum five are optional.
 
 ---
 
+## UI surfaces
+
+A surface is a mountable UI component. Each surface has its own entry file and declares what it reflects.
+
+Morphius mounts surfaces. Morphius does not build UI for modules.
+
+### Surface kinds
+
+| Kind | Description |
+|---|---|
+| `window` | Full-size window surface (default) |
+| `panel` | Sidebar or docked panel |
+| `overlay` | Floating overlay |
+| `embedded` | Embedded inside another surface |
+
+### Surface purposes
+
+| Purpose | Description |
+|---|---|
+| `primary-control` | Main interface — the module's full UI |
+| `status` | Compact read-only status view |
+| `settings` | Module configuration controls |
+| `task-runner` | Multi-step task or workflow execution |
+| `results` | Output, history, or records |
+| `logs` | Log stream or event history |
+| `review` | Approval/decision/review surface |
+| `diagnostics` | Health checks and debug information |
+
+---
+
+## Action kinds
+
+| Kind | Meaning |
+|---|---|
+| `safe` | Read-only or reversible — no side effects |
+| `external` | Calls an external API or service |
+| `destructive` | Irreversible — requires `ui.confirmMessage` |
+| `approval-required` | Requires human approval before executing |
+
+---
+
 ## Permissions
 
 Permissions are declared strings — any string is accepted. Known values:
@@ -133,7 +219,7 @@ Permissions are declared strings — any string is accepted. Known values:
 - `window:spawn`
 - `clipboard:read`, `clipboard:write`
 
-Declaring a permission does not automatically grant it. Morphius displays declared permissions in the module window. Actual enforcement requires a configured permission provider (if one exists in your deployment).
+Declaring a permission does not automatically grant it. Morphius displays declared permissions in the module window.
 
 ---
 
@@ -147,7 +233,7 @@ Declaring a permission does not automatically grant it. Morphius displays declar
 ]
 ```
 
-The actual value lives in Morphius Connect (a separate private config). Morphius passes the connection through to your module at runtime — your module never receives the raw key unless explicitly provided by a configured execution layer.
+The actual value lives in Morphius Connect (a separate private config). See [SECURITY_RULES.md](SECURITY_RULES.md).
 
 ---
 
@@ -161,9 +247,10 @@ See [PROVIDER_HINTS.md](PROVIDER_HINTS.md) for the full provider system guide.
 
 1. No secrets in manifests — use `secretRefs` (names only)
 2. No secrets in source files — use environment variables via Connect
-3. No `.env` files in module folders (Morphius ignores them)
+3. No `.env` files in module folders
 4. No auto-execution of entry files — Morphius reads metadata only
-5. Keep modules isolated — do not modify Morphius core or other modules
+5. Do not import secrets or server-only code into UI surface files
+6. Keep modules isolated — do not modify Morphius core or other modules
 
 ---
 

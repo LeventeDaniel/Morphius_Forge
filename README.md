@@ -12,37 +12,42 @@ Morphius Forge is a toolkit for developers and AI coding agents (Claude Code, Co
 
 It contains:
 - Module specification and manifest schema (`docs/MODULE_SPEC.md`)
-- Module sizing and capability catalog (`docs/MODULE_CATALOG.md`)
-- Umbrella recipe guide (`docs/UMBRELLA_RECIPES.md`)
+- **Module UI guide** — every module owns its interface (`docs/MODULE_UI_GUIDE.md`)
 - Progressive compatibility system (`docs/COMPATIBILITY_LEVELS.md`)
 - Design guide (`docs/DESIGN_GUIDE.md`)
 - AI builder prompt — copy-paste for any AI tool (`docs/AI_BUILDER_PROMPT.md`)
+- Module catalog and capability boundaries (`docs/MODULE_CATALOG.md`)
 - Provider hints guide (`docs/PROVIDER_HINTS.md`)
-- Security recommendations (`docs/SECURITY_RECOMMENDATIONS.md`)
+- Security rules (`docs/SECURITY_RULES.md`, `docs/SECURITY_RECOMMENDATIONS.md`)
 - Starter templates: minimal, frontend, backend, fullstack, workflow, provider
 - Manifest validator with progressive level output
 - CLI (`morphius-forge`)
-- Example modules
 
 **This repo is always public-safe.** It contains no secrets, no credentials, no private endpoints.
 
 ---
 
-## Important: Forge is optional
-
-**Morphius does not require Forge.** Any module with a valid minimum manifest can be loaded by Morphius. Forge is the *recommended* way to build good modules — it provides specs, tools, and validators — but it is not a gatekeeper.
+## Core architecture rule
 
 ```
-Morphius = blank webtop host (loads any valid module)
-Forge    = guide + toolbox (helps you build better modules)
-Connect  = optional private secrets layer (separate private repo)
+Morphius = blank canvas webtop host
+Forge    = guide + toolbox for building modules
+Connect  = private secrets layer (separate private repo)
 ```
 
-You can build a Morphius module with nothing but a `manifest.json` and an entry file. Forge helps you build it well.
+**Morphius does not build dashboards for modules. Morphius does not generate buttons from action arrays. Morphius mounts what modules declare.**
+
+Every interface the user sees inside Morphius comes from a module's own surface files. Connect, Module Host, Approvals, Memory, Source Search — all of these are modules, and all of them own their interfaces.
 
 ---
 
-## Minimum viable module
+## Important: Forge is optional
+
+Any module with a valid minimum manifest can be loaded by Morphius. Forge is the *recommended* way to build good modules — it provides specs, tools, and validators — but it is not a gatekeeper.
+
+---
+
+## Minimum viable module (Level 1)
 
 ```json
 {
@@ -54,146 +59,107 @@ You can build a Morphius module with nothing but a `manifest.json` and an entry 
 }
 ```
 
-This is a valid Level 1 (loadable) module. Morphius will discover and open it immediately.
-
-Everything else — description, permissions, actions, provider metadata, window config — is optional and contributes to higher compatibility levels.
+This is a valid Level 1 (loadable) module. Morphius will discover and mount the entry file.
 
 ---
 
 ## Progressive compatibility levels
 
-| Level | Name | Minimum fields |
+| Level | Name | Key additions |
 |---|---|---|
 | 1 | **Loadable** | id, name, version, type, entry |
-| 2 | **Usable** | + description, permissions |
-| 3 | **Integrated** | + actions |
-| 4 | **Advanced** | + provider or sandbox metadata |
+| 2 | **Usable** | + description + `ui.surfaces` |
+| 3 | **Actionable** | + `actions` with `ui` metadata |
+| 4 | **Advanced** | + provider or sandbox + diagnostics surface |
 
-Validation never fails for missing optional fields. Missing optional fields produce **recommendations**, not errors.
+**Validation never fails for missing optional fields.** Missing fields produce recommendations. Only truly broken manifests produce errors.
 
-**Errors** (blocks loading): missing minimum fields, invalid JSON, plaintext secrets detected.
+### What gets you to Level 2
+
+Level 2 requires that the module declares its own UI surface:
+
+```json
+"ui": {
+  "surfaces": [
+    {
+      "id": "main",
+      "name": "Main Interface",
+      "entry": "./src/module.tsx",
+      "kind": "window",
+      "purpose": "primary-control",
+      "defaultSize": { "width": 720, "height": 520 }
+    }
+  ],
+  "primarySurface": "main"
+}
+```
+
+See [docs/MODULE_UI_GUIDE.md](docs/MODULE_UI_GUIDE.md) for the full UI surface design guide.
+
+### What gets you to Level 3
+
+Level 3 requires that actions declare UI metadata:
+
+```json
+"actions": [
+  {
+    "id": "run",
+    "name": "Run",
+    "kind": "safe",
+    "ui": {
+      "buttonLabel": "▶ RUN",
+      "placement": "primary"
+    }
+  }
+]
+```
+
+Action kinds: `safe` | `external` | `destructive` | `approval-required`
 
 ---
 
 ## Getting started
 
 ```bash
-# Install CLI locally
+# Build and use the CLI
 cd packages/cli && npm install && npm run build
 
 # Validate a module folder
-npx morphius-forge validate ./my-module
+node dist/index.js validate ./my-module
 
 # Inspect a module (detailed summary)
-npx morphius-forge inspect ./my-module
+node dist/index.js inspect ./my-module
 
 # Start the Forge Status server (port 7901)
-npx morphius-forge serve
+node dist/index.js serve
 
-# Example output:
-#   ✓ My Module v1.0.0 [frontend]
-#   COMPATIBILITY: LEVEL 1 — LOADABLE
-#   RECOMMENDATIONS:
-#     · description: add a description (Level 2)
-#     · actions: declare actions (Level 3)
+# Create a new module from template
+node dist/index.js create my-new-module
 ```
 
 ### Forge Status module
 
 Forge ships with a ready-to-load Morphius module (`module/`) that shows live scan results inside Morphius.
 
-**How to use:**
-1. Run `morphius-forge serve` in your Forge folder — starts a server on port 7901
+1. Run `morphius-forge serve` — starts a server on port 7901
 2. Open Morphius → press `/` → `load module`
 3. Enter the path to `Morphius_Forge/module`
 4. The Forge Status window appears — shows module paths, valid/invalid counts, per-module errors
-
-Module paths are stored in `forge.config.json` in the directory where you run `morphius-forge serve`. Update them via:
-- `POST http://localhost:7901/paths` with `{ "paths": ["C:/path/to/modules"] }`
-- Or edit `forge.config.json` directly and click reload in the module
-
-Forge is **fully standalone** — it does not modify Morphius internals and Morphius has no knowledge of Forge.
 
 ---
 
 ## Templates
 
-| Template | When to use |
-|---|---|
-| `templates/minimal-module/` | Starting point — just the minimum five fields |
-| `templates/frontend-module/` | React UI module |
-| `templates/backend-module/` | Node.js action module |
-| `templates/fullstack-module/` | UI + backend |
-| `templates/workflow-module/` | Multi-module workflow |
-| `templates/provider-module/` | System role module (approval, audit, etc.) |
+All templates include real UI surfaces by default.
 
----
-
-## Recommended module size
-
-Forge supports many module shapes, but the recommended unit is simple:
-
-**A module should be one reusable capability, not a tiny function and not a giant app.**
-
-Examples of good module boundaries:
-- Model Router
-- LLM Connector
-- Local Model Connector
-- API Model Connector
-- Prompt Cleaner
-- Prompt Classifier
-- Prompt Router
-- Token Budget App
-- Conversation Summarizer
-- Context Builder
-- Memory Manager
-- Source Search
-- Source Ranker
-- Evidence Extractor
-- Citation Builder
-- Claim Checker
-- Output Validator
-- Benchmark Runner
-- Cost Monitor
-- Tool Registry
-- Tool Runner
-- Secret Guard
-- Approval Gate
-- Permission Provider
-- Sandbox Provider
-- Audit Logger
-- Notification App
-- Health Check
-- Replay Debugger
-- Connect UI
-
-See `docs/MODULE_CATALOG.md` for the full guidance.
-
----
-
-## Umbrella recipes
-
-An umbrella is not a giant module. It is a workspace recipe composed from smaller modules.
-
-Rule of thumb:
-- Module = one capability
-- Umbrella = recipe combining modules
-- Morphius = empty canvas that mounts them
-
-See `docs/UMBRELLA_RECIPES.md` for recommended workspace compositions.
-
----
-
-## Building with AI tools
-
-Use the prompt in `docs/AI_BUILDER_PROMPT.md` with Claude Code, Codex, Cursor, or any other AI tool. The prompt explains:
-
-- Minimum manifest requirements
-- Optional fields for higher compatibility
-- Secret handling rules (use `secretRefs`, not values)
-- Visual design guidelines
-- How to run the validator
-- What Forge checks and what it doesn't
+| Template | Level | Description |
+|---|---|---|
+| `templates/minimal-module/` | 1 | Five required fields only — starting point |
+| `templates/frontend-module/` | 3 | Input/run/output UI with action metadata |
+| `templates/backend-module/` | 3 | Backend server + status/action UI surface |
+| `templates/fullstack-module/` | 3 | UI + backend + settings surface |
+| `templates/workflow-module/` | 3 | Step runner UI with live step state |
+| `templates/provider-module/` | 4 | Approval UI + diagnostics surface |
 
 ---
 
@@ -202,12 +168,14 @@ Use the prompt in `docs/AI_BUILDER_PROMPT.md` with Claude Code, Codex, Cursor, o
 | Doc | Purpose |
 |---|---|
 | `docs/MODULE_SPEC.md` | Full manifest reference |
-| `docs/MODULE_CATALOG.md` | Recommended capability boundaries for modules |
-| `docs/UMBRELLA_RECIPES.md` | Recommended workspace recipes built from smaller modules |
-| `docs/COMPATIBILITY_LEVELS.md` | Level system explained |
+| `docs/MODULE_UI_GUIDE.md` | **How modules own their interface — surfaces, actions, design** |
+| `docs/COMPATIBILITY_LEVELS.md` | Level system with UI-completeness criteria |
 | `docs/AI_BUILDER_PROMPT.md` | Prompt for AI coding tools |
-| `docs/DESIGN_GUIDE.md` | Visual design guidelines |
+| `docs/DESIGN_GUIDE.md` | Visual design language — colors, fonts, layout |
+| `docs/MODULE_CATALOG.md` | Recommended capability boundaries |
+| `docs/UMBRELLA_RECIPES.md` | Workspace compositions from smaller modules |
 | `docs/PROVIDER_HINTS.md` | Provider module guide |
+| `docs/SECURITY_RULES.md` | Security architecture |
 | `docs/SECURITY_RECOMMENDATIONS.md` | Security best practices |
 | `docs/CONNECT_INTEGRATION.md` | Using Morphius Connect with modules |
 | `docs/EXAMPLES.md` | Example module walkthroughs |
@@ -218,13 +186,9 @@ Use the prompt in `docs/AI_BUILDER_PROMPT.md` with Claude Code, Codex, Cursor, o
 
 Morphius is a blank canvas. Forge is a guide. Modules are anything people build.
 
-Recommended architectural rule:
 - Module = one reusable capability
 - Umbrella = recipe combining modules
 - Morphius = empty canvas that mounts them
+- Every visible interface comes from a module — including Connect, Host, Approvals, Memory
 
-- Do not force modules into rigid templates
-- Do not reject creative or experimental module types
-- Do not make Forge the gatekeeper — Morphius decides what loads
-- Do help builders produce high-quality, safe, compatible modules
-- Do not execute module code automatically — discovery is metadata only
+**Forge is not a gatekeeper.** Do not force modules into rigid templates. Do not reject experimental types. Do help builders produce high-quality, safe, compatible modules with real interfaces.
