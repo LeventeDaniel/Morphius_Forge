@@ -1,0 +1,17 @@
+{
+  "id": "my-workflow-module",
+  "name": "My Workflow Module",
+  "version": "0.1.0",
+  "type": "workflow",
+  "description": "TODO: describe what this workflow does",
+  "entry": "./workflow.json",
+  "permissions": [],
+  "connectors": [],
+  "secretRefs": [],
+  "actions": [],
+  "eventsEmitted": [],
+  "eventsListened": [],
+  "tags": ["workflow"],
+  "author": "TODO: your name or org",
+  "license": "MIT"
+}

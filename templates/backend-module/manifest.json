@@ -1,0 +1,26 @@
+{
+  "id": "my-backend-module",
+  "name": "My Backend Module",
+  "version": "0.1.0",
+  "type": "backend",
+  "description": "TODO: describe what this module does",
+  "entry": "./src/actions.ts",
+  "backendEntry": "./src/server.ts",
+  "permissions": [],
+  "connectors": [],
+  "secretRefs": [],
+  "actions": [
+    {
+      "id": "exampleAction",
+      "name": "Example Action",
+      "description": "TODO: describe this action",
+      "inputSchema": "ExampleInput",
+      "outputSchema": "ExampleOutput"
+    }
+  ],
+  "eventsEmitted": [],
+  "eventsListened": [],
+  "tags": [],
+  "author": "TODO: your name or org",
+  "license": "MIT"
+}

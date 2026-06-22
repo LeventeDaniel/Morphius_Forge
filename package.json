@@ -1,0 +1,29 @@
+{
+  "name": "morphius-forge",
+  "version": "0.1.0",
+  "description": "Public-safe module creation kit for building plug-and-play Morphius modules",
+  "author": "Levente Daniel Feher",
+  "license": "MIT",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "validate:examples": "node packages/cli/dist/index.js validate examples/prompt-cleaner && node packages/cli/dist/index.js validate examples/output-validator && node packages/cli/dist/index.js validate examples/demo-auth-provider && node packages/cli/dist/index.js validate examples/demo-llm-connector",
+    "cli": "node packages/cli/dist/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "morphius",
+    "modules",
+    "forge",
+    "webtop",
+    "canvas"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.0"
+  }
+}

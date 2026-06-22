@@ -1,0 +1,25 @@
+{
+  "id": "my-frontend-module",
+  "name": "My Frontend Module",
+  "version": "0.1.0",
+  "type": "frontend",
+  "description": "TODO: describe what this module does",
+  "entry": "./src/module.tsx",
+  "permissions": [],
+  "connectors": [],
+  "secretRefs": [],
+  "window": {
+    "defaultWidth": 560,
+    "defaultHeight": 420,
+    "resizable": true,
+    "collapsible": true,
+    "minimizable": true,
+    "initialPosition": "center"
+  },
+  "actions": [],
+  "eventsEmitted": [],
+  "eventsListened": [],
+  "tags": [],
+  "author": "TODO: your name or org",
+  "license": "MIT"
+}

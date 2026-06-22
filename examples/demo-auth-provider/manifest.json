@@ -1,0 +1,53 @@
+{
+  "id": "demo-auth-provider",
+  "name": "Demo Auth Provider",
+  "version": "0.1.0",
+  "type": "backend",
+  "description": "DEMO ONLY — shows how an auth provider module declares its connector requirements. Contains no real auth logic.",
+  "entry": "./src/actions.ts",
+  "backendEntry": "./src/server.ts",
+  "permissions": ["storage:read", "storage:write"],
+  "connectors": [
+    {
+      "name": "oauth_provider",
+      "description": "OAuth 2.0 provider endpoint (e.g. Google, GitHub). Injected at runtime by Morphius Connect."
+    }
+  ],
+  "secretRefs": [
+    {
+      "name": "OAUTH_CLIENT_ID",
+      "description": "OAuth client ID — declared here by name only, real value lives in Morphius Connect"
+    },
+    {
+      "name": "OAUTH_CLIENT_SECRET",
+      "description": "OAuth client secret — declared here by name only, real value lives in Morphius Connect"
+    }
+  ],
+  "actions": [
+    {
+      "id": "startAuthFlow",
+      "name": "Start Auth Flow",
+      "description": "Returns a mock auth URL. Real implementation would use injected connector values.",
+      "inputSchema": "StartAuthInput",
+      "outputSchema": "StartAuthOutput"
+    },
+    {
+      "id": "exchangeCode",
+      "name": "Exchange Code",
+      "description": "Exchanges an auth code for a token. MOCK in this demo.",
+      "inputSchema": "ExchangeCodeInput",
+      "outputSchema": "ExchangeCodeOutput"
+    }
+  ],
+  "eventsEmitted": [
+    {
+      "name": "auth:login",
+      "description": "Fired when a user successfully authenticates"
+    }
+  ],
+  "eventsListened": [],
+  "morphiusVersion": "0.1.0",
+  "tags": ["auth", "demo"],
+  "author": "Morphius Forge Example",
+  "license": "MIT"
+}

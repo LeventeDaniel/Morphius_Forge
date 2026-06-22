@@ -1,0 +1,34 @@
+{
+  "id": "my-fullstack-module",
+  "name": "My Fullstack Module",
+  "version": "0.1.0",
+  "type": "fullstack",
+  "description": "TODO: describe what this module does",
+  "entry": "./frontend/module.tsx",
+  "backendEntry": "./backend/actions.ts",
+  "permissions": [],
+  "connectors": [],
+  "secretRefs": [],
+  "window": {
+    "defaultWidth": 720,
+    "defaultHeight": 540,
+    "resizable": true,
+    "collapsible": true,
+    "minimizable": true,
+    "initialPosition": "center"
+  },
+  "actions": [
+    {
+      "id": "exampleAction",
+      "name": "Example Action",
+      "description": "TODO: describe this action",
+      "inputSchema": "ExampleInput",
+      "outputSchema": "ExampleOutput"
+    }
+  ],
+  "eventsEmitted": [],
+  "eventsListened": [],
+  "tags": [],
+  "author": "TODO: your name or org",
+  "license": "MIT"
+}

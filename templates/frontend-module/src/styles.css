@@ -1,0 +1,95 @@
+/* Morphius Design Language — see docs/DESIGN_GUIDE.md */
+/* Palette: dark greys only. Single accent: #4ade80 (use sparingly). */
+
+.mf-module {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  font-size: 18px;
+  color: #e0e0e0;
+  background: #111111;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #2a2a2a;
+}
+
+.mf-module__header {
+  padding: 8px 12px;
+  border-bottom: 1px solid #2a2a2a;
+  background: #181818;
+  display: flex;
+  align-items: center;
+}
+
+.mf-module__title {
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #888;
+}
+
+.mf-module__body {
+  padding: 12px;
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mf-label {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #666;
+}
+
+.mf-textarea {
+  background: #0a0a0a;
+  color: #e0e0e0;
+  border: 1px solid #2a2a2a;
+  padding: 8px;
+  font-family: inherit;
+  font-size: 17px;
+  resize: vertical;
+  outline: none;
+}
+
+.mf-textarea:focus {
+  border-color: #555;
+}
+
+.mf-button {
+  background: #1e1e1e;
+  color: #ccc;
+  border: 1px solid #333;
+  padding: 6px 14px;
+  font-family: inherit;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.mf-button:hover {
+  background: #2a2a2a;
+  color: #fff;
+}
+
+.mf-output {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mf-pre {
+  background: #0a0a0a;
+  border: 1px solid #2a2a2a;
+  padding: 8px;
+  font-family: inherit;
+  font-size: 17px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+  color: #aaa;
+}

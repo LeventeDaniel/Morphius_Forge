@@ -1,0 +1,24 @@
+{
+  "id": "my-provider",
+  "name": "My Provider",
+  "version": "1.0.0",
+  "type": "provider",
+  "entry": "./src/provider.ts",
+  "description": "An optional provider module that fills a system role in Morphius.",
+  "permissions": [],
+  "actions": [
+    {
+      "id": "handleRequest",
+      "name": "Handle Request",
+      "description": "Handle an incoming provider request"
+    }
+  ],
+  "provider": {
+    "kind": "approval",
+    "handles": ["approval.request"],
+    "decisions": ["allow", "block", "needs_changes"]
+  },
+  "mockMode": true,
+  "tags": ["provider", "approval"],
+  "license": "MIT"
+}

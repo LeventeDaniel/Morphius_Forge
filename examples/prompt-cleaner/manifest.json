@@ -1,0 +1,34 @@
+{
+  "id": "prompt-cleaner",
+  "name": "Prompt Cleaner",
+  "version": "0.1.0",
+  "type": "frontend",
+  "description": "Cleans and compresses prompts by removing excess whitespace and repeated instructions.",
+  "entry": "./src/module.tsx",
+  "permissions": [],
+  "connectors": [],
+  "secretRefs": [],
+  "window": {
+    "defaultWidth": 560,
+    "defaultHeight": 420,
+    "resizable": true,
+    "collapsible": true,
+    "minimizable": true,
+    "initialPosition": "center"
+  },
+  "actions": [
+    {
+      "id": "cleanPrompt",
+      "name": "Clean Prompt",
+      "description": "Removes excess whitespace, repeated lines, and normalizes formatting.",
+      "inputSchema": "CleanPromptInput",
+      "outputSchema": "CleanPromptOutput"
+    }
+  ],
+  "eventsEmitted": [],
+  "eventsListened": [],
+  "morphiusVersion": "0.1.0",
+  "tags": ["prompt", "text", "utility"],
+  "author": "Morphius Forge Example",
+  "license": "MIT"
+}
