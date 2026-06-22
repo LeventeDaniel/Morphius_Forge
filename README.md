@@ -12,6 +12,8 @@ Morphius Forge is a toolkit for developers and AI coding agents (Claude Code, Co
 
 It contains:
 - Module specification and manifest schema (`docs/MODULE_SPEC.md`)
+- Module sizing and capability catalog (`docs/MODULE_CATALOG.md`)
+- Umbrella recipe guide (`docs/UMBRELLA_RECIPES.md`)
 - Progressive compatibility system (`docs/COMPATIBILITY_LEVELS.md`)
 - Design guide (`docs/DESIGN_GUIDE.md`)
 - AI builder prompt — copy-paste for any AI tool (`docs/AI_BUILDER_PROMPT.md`)
@@ -127,6 +129,61 @@ Forge is **fully standalone** — it does not modify Morphius internals and Morp
 
 ---
 
+## Recommended module size
+
+Forge supports many module shapes, but the recommended unit is simple:
+
+**A module should be one reusable capability, not a tiny function and not a giant app.**
+
+Examples of good module boundaries:
+- Model Router
+- LLM Connector
+- Local Model Connector
+- API Model Connector
+- Prompt Cleaner
+- Prompt Classifier
+- Prompt Router
+- Token Budget App
+- Conversation Summarizer
+- Context Builder
+- Memory Manager
+- Source Search
+- Source Ranker
+- Evidence Extractor
+- Citation Builder
+- Claim Checker
+- Output Validator
+- Benchmark Runner
+- Cost Monitor
+- Tool Registry
+- Tool Runner
+- Secret Guard
+- Approval Gate
+- Permission Provider
+- Sandbox Provider
+- Audit Logger
+- Notification App
+- Health Check
+- Replay Debugger
+- Connect UI
+
+See `docs/MODULE_CATALOG.md` for the full guidance.
+
+---
+
+## Umbrella recipes
+
+An umbrella is not a giant module. It is a workspace recipe composed from smaller modules.
+
+Rule of thumb:
+- Module = one capability
+- Umbrella = recipe combining modules
+- Morphius = empty canvas that mounts them
+
+See `docs/UMBRELLA_RECIPES.md` for recommended workspace compositions.
+
+---
+
 ## Building with AI tools
 
 Use the prompt in `docs/AI_BUILDER_PROMPT.md` with Claude Code, Codex, Cursor, or any other AI tool. The prompt explains:
@@ -145,6 +202,8 @@ Use the prompt in `docs/AI_BUILDER_PROMPT.md` with Claude Code, Codex, Cursor, o
 | Doc | Purpose |
 |---|---|
 | `docs/MODULE_SPEC.md` | Full manifest reference |
+| `docs/MODULE_CATALOG.md` | Recommended capability boundaries for modules |
+| `docs/UMBRELLA_RECIPES.md` | Recommended workspace recipes built from smaller modules |
 | `docs/COMPATIBILITY_LEVELS.md` | Level system explained |
 | `docs/AI_BUILDER_PROMPT.md` | Prompt for AI coding tools |
 | `docs/DESIGN_GUIDE.md` | Visual design guidelines |
@@ -158,6 +217,11 @@ Use the prompt in `docs/AI_BUILDER_PROMPT.md` with Claude Code, Codex, Cursor, o
 ## Philosophy
 
 Morphius is a blank canvas. Forge is a guide. Modules are anything people build.
+
+Recommended architectural rule:
+- Module = one reusable capability
+- Umbrella = recipe combining modules
+- Morphius = empty canvas that mounts them
 
 - Do not force modules into rigid templates
 - Do not reject creative or experimental module types

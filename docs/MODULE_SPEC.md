@@ -10,6 +10,13 @@ A Morphius module is a self-contained unit that plugs into the Morphius webtop h
 
 **Forge is the recommended way to build modules, but it is not required.** Any folder with a valid minimum manifest can be loaded by Morphius.
 
+Recommended architectural rule:
+- Module = one reusable capability
+- Umbrella = recipe combining modules
+- Morphius = empty canvas that mounts them
+
+For recommended module boundaries, see `MODULE_CATALOG.md`. For multi-module workspace compositions, see `UMBRELLA_RECIPES.md`.
+
 ---
 
 ## Minimum required manifest

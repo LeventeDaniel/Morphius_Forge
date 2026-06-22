@@ -58,18 +58,23 @@ RULES:
    - provider: fills a system role (approval, audit, auth, etc.)
    - any other string: valid, displays as "experimental"
 
-9. After building:
+9. Recommended module size:
+   - Build one reusable capability, not a tiny helper and not a giant app
+   - Good examples: Prompt Cleaner, Output Validator, Model Router, Tool Runner, Audit Logger
+   - Umbrellas are recipes made from modules, not giant modules themselves
+
+10. After building:
    - Run: morphius-forge validate .
    - Fix all errors (they block loading)
    - Address warnings second
    - Apply recommendations to reach a higher level
    - Errors must be zero before the module is loadable
 
-10. Morphius visual design (if building UI):
+11. Morphius visual design (if building UI):
     - Dark background (#0a0a0a or #111)
     - Monospace font for labels and metadata
     - Minimal borders (#2a2a2a)
-    - Accent colors: green (#4ade80), blue (#60a5fa), yellow (#facc15)
+    - Accent color: green (#4ade80) only
     - All caps labels with letter-spacing
     - No drop shadows, no gradients, no rounded corners
 

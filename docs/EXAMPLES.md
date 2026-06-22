@@ -1,7 +1,14 @@
 # Example Modules
 
-This document describes the example modules included in Morphius Forge.
+This document describes the example modules currently included in Morphius Forge.
 All examples are clearly marked as demos — they use mock logic only.
+
+These examples are intentionally small. They demonstrate manifest patterns, templates, and validation behavior.
+They are **not** a complete catalog of recommended module boundaries or umbrella recipes.
+
+For that guidance, see:
+- `docs/MODULE_CATALOG.md`
+- `docs/UMBRELLA_RECIPES.md`
 
 ---
 
@@ -96,3 +103,42 @@ npm run validate:examples
 ```
 
 All four examples should pass validation with zero errors.
+
+---
+
+## What is missing on purpose
+
+Forge's current examples do not yet cover the full recommended architecture surface, such as:
+- Model Router
+- Prompt Router
+- Context Builder
+- Memory Manager
+- Source Ranker
+- Evidence Extractor
+- Citation Builder
+- Claim Checker
+- Benchmark Runner
+- Cost Monitor
+- Tool Registry
+- Tool Runner
+- Secret Guard
+- Approval Gate
+- Permission Provider
+- Sandbox Provider
+- Audit Logger
+- Notification App
+- Health Check
+- Replay Debugger
+- Connect UI
+
+They also do not yet ship a flagship umbrella workflow example such as:
+- Research Workspace
+- Benchmark Workspace
+- Prompt Cleanup Workspace
+- Conversation Summary Workspace
+- Tool Debug Workspace
+- Approval Review Workspace
+- Memory Review Workspace
+- Agent Task Workspace
+
+Treat the current examples as starter references, not as the full target module library.
