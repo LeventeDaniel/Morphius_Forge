@@ -1,0 +1,38 @@
+{
+  "id": "{{MODULE_NAME}}",
+  "name": "{{MODULE_TITLE}}",
+  "description": "TODO: describe what this workflow does",
+  "steps": [
+    {
+      "id": "step-1",
+      "name": "Step 1",
+      "description": "TODO: describe step 1",
+      "module": "some-module-id",
+      "action": "someAction",
+      "input": {
+        "text": "{{inputs.userText}}"
+      }
+    },
+    {
+      "id": "step-2",
+      "name": "Step 2",
+      "description": "TODO: describe step 2",
+      "module": "another-module-id",
+      "action": "anotherAction",
+      "input": {
+        "data": "{{steps.step-1.output.result}}"
+      }
+    }
+  ],
+  "inputs": {
+    "userText": {
+      "type": "string",
+      "description": "The input text for this workflow"
+    }
+  },
+  "outputs": {
+    "finalResult": {
+      "from": "{{steps.step-2.output.result}}"
+    }
+  }
+}

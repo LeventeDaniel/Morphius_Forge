@@ -1,0 +1,34 @@
+{
+  "id": "output-validator",
+  "name": "Output Validator",
+  "version": "0.1.0",
+  "type": "frontend",
+  "description": "Validates LLM output against a JSON schema or expected pattern.",
+  "entry": "./src/module.tsx",
+  "permissions": [],
+  "connectors": [],
+  "secretRefs": [],
+  "window": {
+    "defaultWidth": 600,
+    "defaultHeight": 480,
+    "resizable": true,
+    "collapsible": true,
+    "minimizable": true,
+    "initialPosition": "center"
+  },
+  "actions": [
+    {
+      "id": "validateOutput",
+      "name": "Validate Output",
+      "description": "Checks if LLM output matches expected JSON structure.",
+      "inputSchema": "ValidateInput",
+      "outputSchema": "ValidateResult"
+    }
+  ],
+  "eventsEmitted": [],
+  "eventsListened": [],
+  "morphiusVersion": "0.1.0",
+  "tags": ["validation", "json", "utility"],
+  "author": "Morphius Forge Example",
+  "license": "MIT"
+}

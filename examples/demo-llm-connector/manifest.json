@@ -1,0 +1,44 @@
+{
+  "id": "demo-llm-connector",
+  "name": "Demo LLM Connector",
+  "version": "0.1.0",
+  "type": "backend",
+  "description": "DEMO ONLY — shows how a backend module declares LLM connector requirements and exposes a generate action. Contains mock logic only.",
+  "entry": "./src/actions.ts",
+  "backendEntry": "./src/server.ts",
+  "permissions": ["network:outbound"],
+  "connectors": [
+    {
+      "name": "reasoning_api",
+      "description": "LLM reasoning endpoint — injected at runtime by Morphius Connect (e.g. OpenAI, Anthropic, local Ollama)"
+    }
+  ],
+  "secretRefs": [
+    {
+      "name": "LLM_API_KEY",
+      "description": "API key for the LLM provider — name only, real value injected by Morphius Connect"
+    }
+  ],
+  "actions": [
+    {
+      "id": "generate",
+      "name": "Generate",
+      "description": "Send a prompt to the configured LLM and return the response. MOCK in this demo.",
+      "inputSchema": "GenerateInput",
+      "outputSchema": "GenerateOutput"
+    },
+    {
+      "id": "streamGenerate",
+      "name": "Stream Generate",
+      "description": "Stream tokens from the LLM. MOCK in this demo.",
+      "inputSchema": "GenerateInput",
+      "outputSchema": "GenerateOutput"
+    }
+  ],
+  "eventsEmitted": [],
+  "eventsListened": [],
+  "morphiusVersion": "0.1.0",
+  "tags": ["llm", "ai", "connector", "demo"],
+  "author": "Morphius Forge Example",
+  "license": "MIT"
+}

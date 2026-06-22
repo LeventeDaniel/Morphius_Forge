@@ -1,0 +1,19 @@
+{
+  "id": "morphius-forge-status",
+  "name": "Forge Status",
+  "version": "1.0.0",
+  "type": "frontend",
+  "entry": "./src/module.tsx",
+  "description": "Shows Morphius Forge detection status, external module scan results, and validator output.",
+  "tags": ["forge", "status", "modules", "validator"],
+  "window": {
+    "defaultWidth": 460,
+    "defaultHeight": 460,
+    "resizable": true,
+    "minimizable": true,
+    "initialPosition": "center"
+  },
+  "connectors": [],
+  "secretRefs": [],
+  "permissions": []
+}
